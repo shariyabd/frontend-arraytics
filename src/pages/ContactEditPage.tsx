@@ -3,6 +3,7 @@ import { contactsApi } from '../api/contacts'
 import type { ContactInput } from '../api/types'
 import { useContact } from '../features/contacts/useContact'
 import { ContactForm } from '../features/contacts/ContactForm'
+import { invalidate } from '../lib/resourceCache'
 import type { ContactFormValues } from '../lib/validation'
 import { useToast } from '../components/toast/useToast'
 import { Button } from '../components/ui/Button'
@@ -61,6 +62,7 @@ export function ContactEditPage() {
 
   const handleSubmit = async (input: ContactInput) => {
     const updated = await contactsApi.update(contact.id, input)
+    invalidate('/contacts')
     toast.success(`${updated.name} was updated.`)
     navigate(`/contacts/${contact.id}`, { replace: true })
   }

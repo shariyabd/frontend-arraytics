@@ -200,7 +200,7 @@ export function ContactsListPage() {
               onChange={(e) => setSearch(e.target.value)}
               aria-label="Search contacts"
             />
-            {search && (
+            {!!search && (
               <button
                 className="search__clear"
                 onClick={() => setSearch('')}
@@ -265,7 +265,7 @@ export function ContactsListPage() {
                 aria-label="Maximum age"
               />
             </div>
-            {ageError && (
+            {!!ageError && (
               <p className="field__error">
                 <IconAlert size={13} />
                 {ageError}
@@ -277,7 +277,7 @@ export function ContactsListPage() {
         {hasActiveFilters && (
           <div className="active-filters">
             <span className="active-filters__label">Active</span>
-            {urlSearch && (
+            {!!urlSearch && (
               <FilterChip
                 label={`“${urlSearch}”`}
                 onRemove={() => {
@@ -286,13 +286,13 @@ export function ContactsListPage() {
                 }}
               />
             )}
-            {urlGender && (
+            {!!urlGender && (
               <FilterChip
                 label={urlGender}
                 onRemove={() => setParam({ gender: null })}
               />
             )}
-            {urlNationality && (
+            {!!urlNationality && (
               <FilterChip
                 label={urlNationality}
                 onRemove={() => {
@@ -301,7 +301,7 @@ export function ContactsListPage() {
                 }}
               />
             )}
-            {(urlMinAge || urlMaxAge) && (
+            {!!(urlMinAge || urlMaxAge) && (
               <FilterChip
                 label={`Age ${urlMinAge || '1'}–${urlMaxAge || '150'}`}
                 onRemove={() => {

@@ -1,6 +1,6 @@
-import { useEffect, useState } from 'react'
-import { contactsApi } from '../../api/contacts'
+import { contactKey, contactsApi } from '../../api/contacts'
 import { ApiError } from '../../api/client'
+import { useResource } from '../../lib/resourceCache'
 import type { Contact } from '../../api/types'
 
 type Status = 'loading' | 'loaded' | 'notfound' | 'error'
@@ -11,41 +11,34 @@ interface State {
   error: string | null
 }
 
-export function useContact(id: number, reloadKey = 0) {
-  const [state, setState] = useState<State>({
-    contact: null,
-    status: 'loading',
-    error: null,
-  })
+export function useContact(id: number): State {
+  const valid = Number.isFinite(id) && id > 0
+  const key = valid ? contactKey(id) : null
 
-  useEffect(() => {
-    if (!Number.isFinite(id) || id <= 0) {
-      setState({ contact: null, status: 'notfound', error: null })
-      return
+  const { data, error } = useResource(key, (signal) =>
+    contactsApi.get(id, signal),
+  )
+
+  if (!valid) return { contact: null, status: 'notfound', error: null }
+
+  if (error) {
+    // Unauthorized is handled globally (session expiry → redirect); keep the
+    // spinner rather than flashing an error while that resolves.
+    if (error instanceof ApiError && error.isUnauthorized) {
+      return { contact: null, status: 'loading', error: null }
     }
-    const controller = new AbortController()
-    setState((s) => ({ ...s, status: 'loading', error: null }))
-    contactsApi
-      .get(id, controller.signal)
-      .then((contact) =>
-        setState({ contact, status: 'loaded', error: null }),
-      )
-      .catch((err) => {
-        if (err instanceof DOMException && err.name === 'AbortError') return
-        if (err instanceof ApiError && err.isUnauthorized) return
-        if (err instanceof ApiError && err.isNotFound) {
-          setState({ contact: null, status: 'notfound', error: null })
-          return
-        }
-        setState({
-          contact: null,
-          status: 'error',
-          error:
-            err instanceof ApiError ? err.message : 'Could not load contact.',
-        })
-      })
-    return () => controller.abort()
-  }, [id, reloadKey])
+    if (error instanceof ApiError && error.isNotFound) {
+      return { contact: null, status: 'notfound', error: null }
+    }
+    return {
+      contact: null,
+      status: 'error',
+      error:
+        error instanceof ApiError ? error.message : 'Could not load contact.',
+    }
+  }
 
-  return state
+  if (data) return { contact: data, status: 'loaded', error: null }
+
+  return { contact: null, status: 'loading', error: null }
 }

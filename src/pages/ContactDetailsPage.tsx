@@ -3,6 +3,7 @@ import { Link, useNavigate, useParams } from 'react-router-dom'
 import { contactsApi } from '../api/contacts'
 import { ApiError } from '../api/client'
 import { useContact } from '../features/contacts/useContact'
+import { invalidate } from '../lib/resourceCache'
 import { useToast } from '../components/toast/useToast'
 import { Button } from '../components/ui/Button'
 import { GenderBadge } from '../components/ui/GenderBadge'
@@ -86,10 +87,12 @@ export function ContactDetailsPage() {
     setDeleting(true)
     try {
       await contactsApi.remove(contact.id)
+      invalidate('/contacts')
       toast.success(`${contact.name} was deleted.`)
       navigate('/contacts', { replace: true })
     } catch (err) {
       if (err instanceof ApiError && err.isNotFound) {
+        invalidate('/contacts')
         toast.success('That contact was already removed.')
         navigate('/contacts', { replace: true })
       } else if (err instanceof ApiError && err.isUnauthorized) {

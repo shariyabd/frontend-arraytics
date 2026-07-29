@@ -2,6 +2,7 @@ import { useNavigate } from 'react-router-dom'
 import { contactsApi } from '../api/contacts'
 import type { ContactInput } from '../api/types'
 import { ContactForm } from '../features/contacts/ContactForm'
+import { invalidate } from '../lib/resourceCache'
 import { useToast } from '../components/toast/useToast'
 import { IconArrowLeft } from '../components/Icon'
 import { Link } from 'react-router-dom'
@@ -12,6 +13,7 @@ export function ContactCreatePage() {
 
   const handleSubmit = async (input: ContactInput) => {
     const created = await contactsApi.create(input)
+    invalidate('/contacts')
     toast.success(`${created.name} was added.`)
     navigate(`/contacts/${created.id}`, { replace: true })
   }

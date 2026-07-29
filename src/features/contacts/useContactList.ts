@@ -1,52 +1,34 @@
-import { useCallback, useEffect, useState } from 'react'
-import { contactsApi } from '../../api/contacts'
+import { useCallback } from 'react'
+import { contactListKey, contactsApi } from '../../api/contacts'
 import { ApiError } from '../../api/client'
-import type { Contact, ContactListQuery, PaginationMeta } from '../../api/types'
-
-interface State {
-  contacts: Contact[]
-  meta: PaginationMeta | null
-  loading: boolean
-  error: string | null
-}
+import { invalidate, useResource } from '../../lib/resourceCache'
+import type { ContactListQuery } from '../../api/types'
 
 export function useContactList(query: ContactListQuery) {
-  const [state, setState] = useState<State>({
-    contacts: [],
-    meta: null,
-    loading: true,
-    error: null,
-  })
-  const [reloadTick, setReloadTick] = useState(0)
-  const reload = useCallback(() => setReloadTick((t) => t + 1), [])
+  const key = contactListKey(query)
 
-  useEffect(() => {
-    const controller = new AbortController()
-    setState((s) => ({ ...s, loading: true, error: null }))
+  const { data, error, isLoading, isValidating } = useResource(
+    key,
+    (signal) => contactsApi.list(query, signal),
+    { keepPreviousData: true },
+  )
 
-    contactsApi
-      .list(query, controller.signal)
-      .then((data) => {
-        setState({
-          contacts: data.data,
-          meta: data.meta,
-          loading: false,
-          error: null,
-        })
-      })
-      .catch((err) => {
-        if (err instanceof DOMException && err.name === 'AbortError') return
+  // Drop every cached contact-list page so the next read refetches.
+  const reload = useCallback(() => invalidate('/contacts'), [])
 
-        if (err instanceof ApiError && err.isUnauthorized) return
-        const message =
-          err instanceof ApiError
-            ? err.message
-            : 'We couldn’t load your contacts.'
-        setState((s) => ({ ...s, loading: false, error: message }))
-      })
+  let message: string | null = null
+  if (error && !(error instanceof ApiError && error.isUnauthorized)) {
+    message =
+      error instanceof ApiError
+        ? error.message
+        : 'We couldn’t load your contacts.'
+  }
 
-    return () => controller.abort()
-  }, [query, reloadTick])
-
-  return { ...state, reload }
+  return {
+    contacts: data?.data ?? [],
+    meta: data?.meta ?? null,
+    loading: isLoading || isValidating,
+    error: message,
+    reload,
+  }
 }

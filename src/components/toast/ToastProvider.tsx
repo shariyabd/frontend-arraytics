@@ -1,4 +1,4 @@
-import { useCallback, useRef, useState } from 'react'
+import { useCallback, useMemo, useRef, useState } from 'react'
 import { IconAlert, IconCheck, IconClose } from '../Icon'
 import { ToastContext, type Toast, type ToastKind } from './context'
 
@@ -24,8 +24,13 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
   const success = useCallback((m: string) => push('success', m), [push])
   const error = useCallback((m: string) => push('error', m), [push])
 
+  const value = useMemo(
+    () => ({ push, success, error }),
+    [push, success, error],
+  )
+
   return (
-    <ToastContext.Provider value={{ push, success, error }}>
+    <ToastContext.Provider value={value}>
       {children}
       <div className="toast-stack" role="region" aria-label="Notifications">
         {toasts.map((t) => (

@@ -19,6 +19,14 @@ function buildQuery(q: ContactListQuery): string {
   return s ? `?${s}` : ''
 }
 
+/** Cache key for a single contact resource. */
+export const contactKey = (id: number) => `/contacts/${id}`
+
+/** Cache key for a contact-list resource. Shares the `/contacts` prefix with
+ *  {@link contactKey} so `invalidate('/contacts')` clears both. */
+export const contactListKey = (query: ContactListQuery) =>
+  `/contacts${buildQuery(query)}`
+
 export const contactsApi = {
   list: (query: ContactListQuery, signal?: AbortSignal) =>
     api.get<ContactListData>(`/contacts${buildQuery(query)}`, signal),

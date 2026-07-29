@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import {
   authApi,
   type LoginCredentials,
@@ -118,11 +118,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   }, [persist, clearSession])
 
+  const value = useMemo(
+    () => ({ user, status, notice, clearNotice, login, register, logout }),
+    [user, status, notice, clearNotice, login, register, logout],
+  )
+
   return (
-    <AuthContext.Provider
-      value={{ user, status, notice, clearNotice, login, register, logout }}
-    >
-      {children}
-    </AuthContext.Provider>
+    <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
   )
 }
