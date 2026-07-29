@@ -75,6 +75,20 @@ export function invalidate(prefix: string) {
   }
 }
 
+/**
+ * Wipe the entire cache and in-flight state. Call on any session boundary
+ * (login / logout) so one user's data can never be served to another.
+ *
+ * Deliberately does NOT notify listeners: a session change unmounts/remounts
+ * the routed pages, which refetch on mount. Notifying here would make a
+ * still-mounted list refetch mid-logout — after the token is gone — yielding
+ * a stray 401 and a spurious "session expired" notice.
+ */
+export function clearCache() {
+  cache.clear()
+  inflight.clear()
+}
+
 export interface Resource<T> {
   data: T | undefined
   error: unknown
@@ -108,15 +122,17 @@ export function useResource<T>(
 
   useEffect(() => {
     if (key == null) return
-    let controller: AbortController | null = null
 
     const startFetch = () => {
       if (inflight.has(key)) return
-      controller = new AbortController()
-      const signal = controller.signal
-      revalidate(key, () => fetcherRef.current(signal)).catch(() => {
-        // Errors surface through the cache entry read below.
-      })
+      // The fetch writes to the module cache, not component state, so it is
+      // safe to let it finish after unmount — hence no abort on cleanup.
+      // Aborting here caused React StrictMode's mount→cleanup→mount cycle to
+      // cancel the revalidation and leave stale data in place.
+      revalidate(key, () => fetcherRef.current(new AbortController().signal))
+        .catch(() => {
+          // Errors surface through the cache entry read below.
+        })
     }
 
     const onNotify = () => {
@@ -130,10 +146,7 @@ export function useResource<T>(
     startFetch()
     forceRender((n) => n + 1)
 
-    return () => {
-      controller?.abort()
-      unsubscribe()
-    }
+    return unsubscribe
   }, [key])
 
   const entry = key != null ? cache.get(key) : undefined

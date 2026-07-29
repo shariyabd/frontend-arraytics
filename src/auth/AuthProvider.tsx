@@ -8,6 +8,7 @@ import {
   setAuthToken,
   setUnauthorizedHandler,
 } from '../api/client'
+import { clearCache } from '../lib/resourceCache'
 import type { AuthUser } from '../api/types'
 import { AuthContext, type AuthStatus } from './context'
 
@@ -41,6 +42,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, [])
 
   const clearSession = useCallback(() => {
+    clearCache()
     persist(null, null)
     setUser(null)
     setStatus('unauthenticated')
@@ -49,6 +51,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const startSession = useCallback(
     (token: string, u: AuthUser) => {
       expiredRef.current = false
+      // Drop any cached data from a previous session before this one begins.
+      clearCache()
       persist(token, u)
       setUser(u)
       setStatus('authenticated')
