@@ -19,7 +19,20 @@ export function validatePassword(value: string): string | undefined {
   if (!value) return 'Password is required.'
 }
 
-function validateName(value: string): string | undefined {
+export function validateNewPassword(value: string): string | undefined {
+  if (!value) return 'Password is required.'
+  if (value.length < 8) return 'Password must be at least 8 characters.'
+}
+
+export function validatePasswordConfirmation(
+  password: string,
+  confirmation: string,
+): string | undefined {
+  if (!confirmation) return 'Please confirm your password.'
+  if (password !== confirmation) return 'Passwords do not match.'
+}
+
+export function validateName(value: string): string | undefined {
   const v = value.trim()
   if (!v) return 'Name is required.'
   if (v.length > 255) return 'Name may not be longer than 255 characters.'

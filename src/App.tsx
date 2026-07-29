@@ -4,6 +4,7 @@ import { RequireAuth } from './auth/RequireAuth'
 import { ToastProvider } from './components/toast/ToastProvider'
 import { Layout } from './components/Layout'
 import { LoginPage } from './pages/LoginPage'
+import { RegisterPage } from './pages/RegisterPage'
 import { ContactsListPage } from './pages/ContactsListPage'
 import { ContactDetailsPage } from './pages/ContactDetailsPage'
 import { ContactCreatePage } from './pages/ContactCreatePage'
@@ -17,6 +18,7 @@ export default function App() {
         <AuthProvider>
           <Routes>
             <Route path="/login" element={<LoginPage />} />
+            <Route path="/register" element={<RegisterPage />} />
 
             <Route element={<RequireAuth />}>
               <Route element={<Layout />}>

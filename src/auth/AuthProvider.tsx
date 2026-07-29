@@ -1,5 +1,9 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { authApi, type LoginCredentials } from '../api/auth'
+import {
+  authApi,
+  type LoginCredentials,
+  type RegisterCredentials,
+} from '../api/auth'
 import {
   setAuthToken,
   setUnauthorizedHandler,
@@ -42,16 +46,31 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setStatus('unauthenticated')
   }, [persist])
 
-  const login = useCallback(
-    async (credentials: LoginCredentials) => {
-      const data = await authApi.login(credentials)
+  const startSession = useCallback(
+    (token: string, u: AuthUser) => {
       expiredRef.current = false
-      persist(data.token, data.user)
-      setUser(data.user)
+      persist(token, u)
+      setUser(u)
       setStatus('authenticated')
       setNotice(null)
     },
     [persist],
+  )
+
+  const login = useCallback(
+    async (credentials: LoginCredentials) => {
+      const data = await authApi.login(credentials)
+      startSession(data.token, data.user)
+    },
+    [startSession],
+  )
+
+  const register = useCallback(
+    async (credentials: RegisterCredentials) => {
+      const data = await authApi.register(credentials)
+      startSession(data.token, data.user)
+    },
+    [startSession],
   )
 
   const logout = useCallback(async () => {
@@ -101,7 +120,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   return (
     <AuthContext.Provider
-      value={{ user, status, notice, clearNotice, login, logout }}
+      value={{ user, status, notice, clearNotice, login, register, logout }}
     >
       {children}
     </AuthContext.Provider>

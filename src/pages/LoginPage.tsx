@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import { useLocation, useNavigate } from 'react-router-dom'
+import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { ApiError } from '../api/client'
 import { useAuth } from '../auth/useAuth'
 import { Button } from '../components/ui/Button'
@@ -154,6 +154,10 @@ export function LoginPage() {
               {locked ? `Try again in ${lockSeconds}s` : 'Log in'}
             </Button>
           </form>
+
+          <p className="auth-alt">
+            Don’t have an account? <Link to="/register">Create one</Link>
+          </p>
 
           <p className="auth-hint">
             Seeded demo account: <code>test@example.com</code> /{' '}
