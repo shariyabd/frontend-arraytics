@@ -67,7 +67,12 @@ describe('validateEmail', () => {
 
 describe('phone validation (via validateContactForm)', () => {
   it('accepts valid phone numbers', () => {
-    for (const phone of ['+1 555 123 4567', '5551234567', '(555) 123-4567']) {
+    for (const phone of [
+      '+1 555 123 4567',
+      '5551234567',
+      '(555) 123-4567',
+      '+1 (555) 123-4567',
+    ]) {
       expect(errorsFor({ phone }).phone).toBeUndefined()
     }
   })
@@ -76,6 +81,13 @@ describe('phone validation (via validateContactForm)', () => {
   })
   it('rejects phones that fail the regex', () => {
     for (const phone of ['12345', 'abcdefg', '+']) {
+      expect(errorsFor({ phone }).phone).toBe(
+        'Use digits (7+), optional +, spaces, dashes or parentheses.',
+      )
+    }
+  })
+  it('rejects phones without digits (mirrors backend digit requirement)', () => {
+    for (const phone of ['-------', '(((----)))', '  -  -  -  ']) {
       expect(errorsFor({ phone }).phone).toBe(
         'Use digits (7+), optional +, spaces, dashes or parentheses.',
       )

@@ -85,11 +85,7 @@ export function ContactsListPage() {
       gender: urlGender || undefined,
       nationality: urlNationality || undefined,
 
-      min_age: urlMinAge
-        ? Number(urlMinAge)
-        : urlMaxAge
-          ? 1
-          : undefined,
+      min_age: urlMinAge ? Number(urlMinAge) : undefined,
       max_age: urlMaxAge ? Number(urlMaxAge) : undefined,
       per_page: urlPerPage,
       page: urlPage,

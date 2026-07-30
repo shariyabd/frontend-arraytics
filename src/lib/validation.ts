@@ -2,7 +2,7 @@ import type { ContactInput, Gender } from '../api/types'
 
 export const GENDERS: Gender[] = ['Male', 'Female', 'Other']
 
-const PHONE_RE = /^\+?[0-9\s\-()]{7,}$/
+const PHONE_RE = /^\+?(?=(?:.*\d){7,})[0-9\s\-()]{7,}$/
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 
