@@ -92,6 +92,19 @@ The suite (**47 tests**) covers:
 - [src/api/client.test.ts](src/api/client.test.ts) — `ApiError` mapping: 422 → validation field errors, 401 → unauthorized, 404 → not found, 429 → rate limited, network failure → status 0.
 - [src/features/contacts/ContactForm.test.tsx](src/features/contacts/ContactForm.test.tsx) — the submission form shows inline error messages for invalid input.
 
+### E2E smoke test (optional, needs a live backend)
+
+[e2e/smoke.spec.ts](e2e/smoke.spec.ts) drives a real browser through the full journey: login → list renders → create → search → edit → delete → logout. It is **not** part of `npm run test` because it needs the backend running and seeded:
+
+```bash
+# terminal 1 — backend (from the backend repo)
+php artisan migrate --seed && php artisan serve      # → :8000
+
+# terminal 2 — this repo (starts the Vite dev server itself)
+npx playwright install chromium   # first run only
+npm run test:e2e
+```
+
 ---
 
 ## 6. How it connects to the API

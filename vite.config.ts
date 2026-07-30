@@ -1,5 +1,5 @@
-/// <reference types="vitest/config" />
 import { defineConfig, loadEnv, type PluginOption } from 'vite'
+import { configDefaults } from 'vitest/config'
 import react from '@vitejs/plugin-react'
 import { visualizer } from 'rollup-plugin-visualizer'
 
@@ -36,6 +36,8 @@ export default defineConfig(({ mode }) => {
       environment: 'jsdom',
       globals: true,
       setupFiles: './src/test/setup.ts',
+      // Playwright smoke tests need a live backend — run via `npm run test:e2e`.
+      exclude: [...configDefaults.exclude, 'e2e/**'],
     },
     build: {
       rollupOptions: {
