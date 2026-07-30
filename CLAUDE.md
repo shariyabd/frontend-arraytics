@@ -49,7 +49,7 @@ src/test/setup.ts       Vitest + jest-dom
 | Dev server | `npm run dev` → http://localhost:5173 |
 | Build | `npm run build` |
 | Preview build | `npm run preview` |
-| Tests | `npm run test` (46) / `npm run test:watch` |
+| Tests | `npm run test` (47) / `npm run test:watch` |
 | Lint | `npm run lint` |
 
 **Seeded login:** `test@example.com` / `password`.

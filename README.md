@@ -4,6 +4,8 @@ A decoupled **React 19 + TypeScript + Vite** single-page app for the Address Boo
 
 > This README documents the **frontend**. The backend has its own guide at [../backend/README.md](../backend/README.md). Docker (one command for both apps + MySQL) is documented at [../backend/DOCKER.md](../backend/DOCKER.md).
 
+> **Folder layout assumption:** the docs and the Docker setup expect the two repos checked out as **sibling folders named `backend` and `frontend`** (e.g. `git clone <frontend-url> frontend`). If your checkout folders are named differently, rename them or adjust the cross-links and the `../frontend` build context in the backend's `docker-compose.yml`.
+
 ---
 
 ## 1. Tech Stack & Versions
@@ -84,7 +86,7 @@ npm run test        # run once (Vitest)
 npm run test:watch  # watch mode
 ```
 
-The suite (**46 tests**) covers:
+The suite (**47 tests**) covers:
 
 - [src/lib/validation.test.ts](src/lib/validation.test.ts) — every field validator (name, phone regex, email, website URL, gender enum, age boundaries 1–150, nationality), verifying the client rules **mirror the backend Form Requests**.
 - [src/api/client.test.ts](src/api/client.test.ts) — `ApiError` mapping: 422 → validation field errors, 401 → unauthorized, 404 → not found, 429 → rate limited, network failure → status 0.
@@ -136,11 +138,29 @@ frontend/src/
 
 ---
 
-## 8. Running both apps
+## 8. Running both apps — two options
 
-**Option A — Docker (one command):** from the backend repo (with this frontend checked out as a sibling `../frontend`), `docker compose up --build`. See [../backend/DOCKER.md](../backend/DOCKER.md).
+The backend and frontend are **two independent git repositories**; clone them side by side (e.g. as sibling folders `backend/` and `frontend/`). Then pick either path:
 
-**Option B — natively:**
-1. Start the backend: follow [../backend/README.md](../backend/README.md) (`php artisan serve` → `:8000`, migrate + seed).
-2. Start this SPA: `npm run dev` → `:5173`.
+**Option A — natively, two separate repos run locally (no Docker required):**
+1. Start the backend: follow [../backend/README.md](../backend/README.md) (`composer install`, `.env` + key, `php artisan migrate --seed`, `php artisan serve` → `:8000`).
+2. Start this SPA in a second terminal: §3–§4 above (`npm install`, `cp .env.example .env`, `npm run dev` → `:5173`).
 3. Log in with `test@example.com` / `password`.
+
+**Option B — Docker (one command):** requires Docker to be **installed and running** first (Docker Engine/Desktop 24+ with Compose v2 — start Docker Desktop and verify with `docker --version`, `docker compose version`, `docker info`). Then, from the backend repo (with this frontend checked out as a sibling `../frontend`): `docker compose up --build`. See [../backend/DOCKER.md](../backend/DOCKER.md).
+
+**Verifying it works:** after logging in you should land on `/contacts` and see a populated table (~50 seeded contacts). Try the search box and a filter; open, edit, and delete a record. If the table is empty, the backend seeder hasn't run (`php artisan migrate --seed`).
+
+---
+
+## 9. Troubleshooting
+
+| Symptom | Likely cause | Fix |
+|---------|--------------|-----|
+| Login page shows "Unable to reach the server" | Backend not running, or dev proxy pointing at the wrong origin | Start the backend on `:8000`; check `VITE_API_TARGET` in `.env` matches it (restart `npm run dev` after changing `.env`). |
+| `502`/`ECONNREFUSED` in the Vite console for `/api/*` | Same as above — the proxy target is down | Same fix. |
+| Login fails with "credentials do not match" | Seeder not run on the backend | In the backend: `php artisan migrate --seed`, then use `test@example.com` / `password`. |
+| "Too many attempts" on login | Backend rate limit (6/min) hit | Wait for the on-screen countdown (~60s). |
+| Browser CORS error | Calling the API cross-origin (absolute `VITE_API_BASE_URL`) without the backend allow-listing this origin | Either keep the default `/api/v1` + dev proxy (same-origin), or set `FRONTEND_URL` in the backend `.env` to this app's origin. |
+| Blank page after `npm run dev` | Node too old | Use Node 18+ (24.x recommended); check `node -v`. |
+| Changes to `.env` not taking effect | Vite only reads env at startup | Restart the dev server / rebuild. |
