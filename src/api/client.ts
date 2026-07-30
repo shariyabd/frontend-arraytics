@@ -1,5 +1,8 @@
 import type { ApiErrorBody } from './types'
 
+// Base path prepended to every request. Set VITE_API_BASE_URL to an absolute
+// origin in production; the default `/api/v1` is a relative path the Vite dev
+// proxy (see vite.config.ts) forwards to VITE_API_TARGET during development.
 const BASE_URL = import.meta.env.VITE_API_BASE_URL ?? '/api/v1'
 
 export class ApiError extends Error {
